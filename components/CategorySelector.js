@@ -9,7 +9,7 @@ const categories = [
   { id: 'utilities', label: 'Utilities', color: '#32CD32' },
 ];
 
-const CategorySelector = ({ selectedCategory, onSelectCategory }) => {
+const CategorySelector = ({ selectedCategory, onSelectCategory, isDarkMode }) => {
   return (
     <View style={styles.container}>
       {categories.map(cat => (
@@ -22,7 +22,9 @@ const CategorySelector = ({ selectedCategory, onSelectCategory }) => {
           onPress={() => onSelectCategory(cat.id)}
         >
           <View style={[styles.colorBox, { backgroundColor: cat.color }]} />
-          <Text>{cat.label}</Text>
+          <Text style={{ color: isDarkMode ? '#fff' : '#000' }}>
+            {cat.label}
+          </Text>
         </TouchableOpacity>
       ))}
     </View>

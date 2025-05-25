@@ -6,14 +6,17 @@ import {
   Dimensions,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { ExpenseContext } from '../contexts/ExpenseContext';
 import { PieChart, LineChart } from 'react-native-chart-kit';
+import { useTheme } from '../contexts/ThemeContext'; // Import your theme hook
 
 const screenWidth = Dimensions.get('window').width;
 
 const ChartsScreen = () => {
   const { expenses } = useContext(ExpenseContext);
+  const { theme, toggleTheme, isDarkMode } = useTheme(); // use theme context
 
   // Pie Chart: Spending by Category
   const categoryTotals = expenses.reduce((acc, expense) => {
@@ -25,7 +28,7 @@ const ChartsScreen = () => {
     name: category,
     amount,
     color: getColorForCategory(category),
-    legendFontColor: '#4B5563',
+    legendFontColor: theme.text, // adapt to theme text color
     legendFontSize: 14,
   }));
 
@@ -47,17 +50,36 @@ const ChartsScreen = () => {
   const lineData = sortedMonths.map((month) => monthlyTotals[month]);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.pageTitle}>Spending Insights</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header with toggle button */}
+      <View style={styles.header}>
+        <View /> {/* empty left spacer */}
+        <TouchableOpacity onPress={toggleTheme} style={styles.toggleButton}>
+          <Text style={[styles.toggleIcon, { color: theme.text }]}>
+            {isDarkMode ? '🌞' : '🌙'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.chartTitle}>By Category</Text>
+      <Text style={[styles.pageTitle, { color: theme.text }]}>Spending Insights</Text>
+
+      <View style={[styles.card, { backgroundColor: theme.card, shadowColor: theme.text }]}>
+        <Text style={[styles.chartTitle, { color: theme.text }]}>By Category</Text>
         {pieData.length > 0 ? (
           <PieChart
             data={pieData}
             width={screenWidth - 32}
             height={220}
-            chartConfig={chartConfig}
+            chartConfig={{
+              ...chartConfig,
+              backgroundGradientFrom: theme.card,
+              backgroundGradientTo: theme.card,
+              color: (opacity = 1) => theme.text + Math.floor(opacity * 255).toString(16), // fallback
+              labelColor: (opacity = 1) => theme.text,
+            }}
             accessor="amount"
             backgroundColor="transparent"
             paddingLeft="15"
@@ -65,12 +87,12 @@ const ChartsScreen = () => {
             style={styles.chart}
           />
         ) : (
-          <Text style={styles.emptyText}>No expense data to display</Text>
+          <Text style={[styles.emptyText, { color: theme.text }]}>No expense data to display</Text>
         )}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.chartTitle}>Monthly Trends</Text>
+      <View style={[styles.card, { backgroundColor: theme.card, shadowColor: theme.text }]}>
+        <Text style={[styles.chartTitle, { color: theme.text }]}>Monthly Trends</Text>
         {lineData.length > 0 ? (
           <LineChart
             data={{
@@ -79,12 +101,18 @@ const ChartsScreen = () => {
             }}
             width={screenWidth - 32}
             height={256}
-            chartConfig={chartConfig}
+            chartConfig={{
+              ...chartConfig,
+              backgroundGradientFrom: theme.card,
+              backgroundGradientTo: theme.card,
+              color: (opacity = 1) => theme.text + Math.floor(opacity * 255).toString(16),
+              labelColor: (opacity = 1) => theme.text,
+            }}
             bezier
             style={styles.chart}
           />
         ) : (
-          <Text style={styles.emptyText}>No trend data to display</Text>
+          <Text style={[styles.emptyText, { color: theme.text }]}>No trend data to display</Text>
         )}
       </View>
     </ScrollView>
@@ -95,8 +123,8 @@ const ChartsScreen = () => {
 const chartConfig = {
   backgroundGradientFrom: '#ffffff',
   backgroundGradientTo: '#ffffff',
-  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Tailwind blue-500
-  labelColor: (opacity = 1) => `rgba(75, 85, 99, ${opacity})`, // Gray-600
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Tailwind blue-500 default fallback
+  labelColor: (opacity = 1) => `rgba(75, 85, 99, ${opacity})`, // Gray-600 fallback
   strokeWidth: 2,
   decimalPlaces: 2,
   propsForDots: {
@@ -129,23 +157,31 @@ function getColorForCategory(category) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB', // Light gray background
     paddingHorizontal: 16,
     paddingTop: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  toggleButton: {
+    padding: 8,
+  },
+  toggleIcon: {
+    fontSize: 28,
   },
   pageTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1F2937', // Gray-800
     marginBottom: 24,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -154,7 +190,6 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151', // Gray-700
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -164,7 +199,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
-    color: '#9CA3AF', // Gray-400
     textAlign: 'center',
     marginTop: 20,
     fontStyle: 'italic',

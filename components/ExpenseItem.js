@@ -1,17 +1,19 @@
-// components/ExpenseItem.js
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ExpenseItem = ({ expense }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.card }]}>
       <View style={[styles.categoryIndicator, { backgroundColor: expense.color }]} />
       <View style={styles.details}>
-        <Text style={styles.amount}>${expense.amount.toFixed(2)}</Text>
-        <Text style={styles.category}>{expense.category}</Text>
-        <Text style={styles.date}>{expense.date}</Text>
+        <Text style={[styles.amount, { color: theme.text }]}>${expense.amount.toFixed(2)}</Text>
+        <Text style={[styles.category, { color: theme.text }]}>{expense.category}</Text>
+        <Text style={[styles.date, { color: theme.text }]}>{expense.date}</Text>
+        {expense.note ? <Text style={[styles.note, { color: theme.text }]}>{expense.note}</Text> : null}
       </View>
-      {expense.note ? <Text style={styles.note}>{expense.note}</Text> : null}
     </View>
   );
 };
@@ -21,7 +23,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 12,
     marginVertical: 6,
-    backgroundColor: '#fff',
     borderRadius: 8,
     elevation: 2,
     alignItems: 'center',
@@ -41,16 +42,30 @@ const styles = StyleSheet.create({
   },
   category: {
     fontSize: 14,
-    color: '#666',
   },
   date: {
     fontSize: 12,
-    color: '#999',
   },
   note: {
     fontStyle: 'italic',
-    color: '#555',
+    fontSize: 13,
   },
+
+
 });
+
+const lightTheme = {
+  background: '#fff',
+  text: '#000',
+  card: '#f5f5f5',
+  cardShadow: '#ccc'
+};
+
+const darkTheme = {
+  background: '#121212',
+  text: '#fff',
+  card: '#2C2F33',
+  cardShadow: '#000'
+};
 
 export default ExpenseItem;

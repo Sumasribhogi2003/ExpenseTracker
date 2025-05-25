@@ -1,4 +1,3 @@
-// contexts/ExpenseContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import { saveExpenses, loadExpenses, clearExpenses } from '../services/expenseStorage';
 
@@ -10,25 +9,48 @@ export const ExpenseProvider = ({ children }) => {
   useEffect(() => {
     const fetchExpenses = async () => {
       const loadedExpenses = await loadExpenses();
-      console.log('Loaded expenses:', loadedExpenses);
-      setExpenses(loadedExpenses);
+      console.log('Fetched expenses from storage:', loadedExpenses);
+      setExpenses(loadedExpenses || []);
     };
     fetchExpenses();
   }, []);
 
   useEffect(() => {
+    console.log('Expenses updated, saving to storage:', expenses);
     saveExpenses(expenses);
   }, [expenses]);
 
+  const addExpense = (expense) => {
+    const id = expense.id ? Number(expense.id) : Date.now();
+    const newExpense = { ...expense, id };
+    console.log('Adding new expense:', newExpense);
+    setExpenses((prev) => [...prev, newExpense]);
+  };
+
+  const editExpense = (id, updatedExpense) => {
+    const idNum = Number(id);
+    console.log(`Editing expense with id ${idNum}`, updatedExpense);
+    setExpenses((prev) =>
+      prev.map((exp) => (exp.id === idNum ? updatedExpense : exp))
+    );
+  };
+
+  const deleteExpense = (id) => {
+    const idNum = Number(id);
+    console.log(`Deleting expense with id ${idNum}`);
+    setExpenses((prev) => prev.filter((exp) => exp.id !== idNum));
+  };
+
   const resetExpenses = async () => {
-    console.log('resetExpenses called');
+    console.log('Resetting all expenses');
     await clearExpenses();
     setExpenses([]);
-    console.log('Expenses reset in context');
   };
 
   return (
-    <ExpenseContext.Provider value={{ expenses, setExpenses, resetExpenses }}>
+    <ExpenseContext.Provider
+      value={{ expenses, addExpense, editExpense, deleteExpense, resetExpenses }}
+    >
       {children}
     </ExpenseContext.Provider>
   );
